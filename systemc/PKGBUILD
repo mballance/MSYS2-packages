@@ -1,0 +1,60 @@
+# Maintainer: Matthew Ballance <matt.ballance@gmail.com>
+
+pkgname=('systemc')
+_pkgver=2.3.1a
+_patchlevel=1
+pkgver=${_pkgver}
+if [ -n "${_patchlevel}" ]; then
+  pkgver+=.${_patchlevel}
+fi
+#pkgver=${_pkgver}
+pkgrel=1
+pkgdesc="SystemC library"
+arch=('i686' 'x86_64')
+url="http://www.accellera.org/"
+license=('Apache 2.0')
+#depends=('gmp>=5.0')
+#makedepends=('gmp-devel>=5.0')
+source=(http://www.accellera.org/images/downloads/standards/systemc/systemc-${_pkgver}.tar.gz)
+#        mpfr-3.1.5-p1.patch
+#        mpfr-3.1.2-msys2.patch)
+#validpgpkeys=('07F3DBBECC1A39605078094D980C197698C3739D')
+#sha256sums=('015fde82b3979fbe5f83501986d328331ba8ddf008c1ff3da3c238f49ca062bc'
+#            'SKIP'
+#            'd9a45fe5757301bcd5f995c7b12f1fc34c28d0ecd4e44e8f3db97c8145b111b9'
+#            'c2203787c656ef82878d5fe839eb135232c3387668490ef59d84880f3573c308')
+
+prepare() {
+  cd "${srcdir}/${pkgname}-${_pkgver}"
+  patch -p1 -i ${srcdir}/../systemc-2.3.1a.patch
+}
+
+build() {
+	echo "build"
+	export CPPFLAGS="-D__MINGW32__"
+	cd "${srcdir}/${pkgname}-${_pkgver}"
+	./configure --target=x86_64-unknown-mingw32 \
+		--prefix=${srcdir}/dest
+	make
+	make install
+}
+
+check() {
+	echo "check"
+  cd "${srcdir}/dest/examples/sysc/pipe"
+  make TARGET_ARCH=mingw64
+#  make check
+}
+
+package_systemc() {
+	echo "package"
+#  groups=('libraries')
+#  install=mpfr.install
+
+  mkdir -p ${pkgdir}/usr/lib/systemc
+  cp -rf ${srcdir}/dest/include ${pkgdir}/usr/lib/systemc
+  cp -rf ${srcdir}/dest/lib-* ${pkgdir}/usr/lib/systemc
+  cp -rf ${srcdir}/dest/docs ${pkgdir}/usr/lib/systemc
+  cp -rf ${srcdir}/dest/examples ${pkgdir}/usr/lib/systemc
+}
+
